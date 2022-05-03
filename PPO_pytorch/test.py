@@ -7,6 +7,7 @@ display = Display(visible=False, size=(1400, 900))
 _ = display.start()
 
 import gym
+# from gym import wrappers
 from gym.wrappers.monitoring.video_recorder import VideoRecorder
 import torch
 import torch.nn as nn
@@ -32,7 +33,7 @@ class Env():
     metadata = {"render_mode":{"human"}}
 
     def __init__(self):
-        self.env = gym.make('CarRacing-v0')
+        self.env = gym.make('CarRacing-v1')
         self.env.seed(args.seed)
         self.reward_threshold = self.env.spec.reward_threshold
 
@@ -161,10 +162,9 @@ class Agent():
 if __name__ == "__main__":
     agent = Agent()
     env = Env()
-
     #before training video
     before_training = "before_training.mp4"
-    video = VideoRecorder(env, before_training)
+    video = VideoRecorder(env, before_training, enabled=True)
     training_records = []
     running_score = 0
     state = env.reset()
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         state = env.reset() 
 
         for t in range(1000): 
-            action, a_logp = agent.select_action(state) 
+            action = agent.select_action(state) 
             if args.render: 
                 env.render() 
             video.capture_frame()
@@ -184,13 +184,14 @@ if __name__ == "__main__":
             if done or die:
                 break
         break
-    video.close
+    video.close()
+    env.close()
 
-
+    env = Env()
     #After training video
     agent.load_param()
     after_training = "after_training.mp4"
-    video = VideoRecorder(env, after_training)
+    video = VideoRecorder(env, after_training, enabled=True)
     training_records = []
     running_score = 0
     state = env.reset()
@@ -210,5 +211,6 @@ if __name__ == "__main__":
                 break
 
         print('Ep {}\tScore: {:.2f}\t'.format(i_ep, score))
-    video.close
+    video.close()
+    env.close()
     
