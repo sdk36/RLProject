@@ -38,13 +38,15 @@ class Agent(nn.Module):
         self.fc3.weight.data.uniform_(-init_w, init_w)
     
     def forward(self, x):
-        x = x.to(device)
+        x = x.permute(0,3,2,1)
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
+        x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = self.tanh(x)
+        print(x)
         return x
 
