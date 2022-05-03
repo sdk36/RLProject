@@ -29,6 +29,7 @@ class Env():
     """
     Test environment wrapper for CarRacing 
     """
+    metadata = {"render_mode":{"human"}}
 
     def __init__(self):
         self.env = gym.make('CarRacing-v0')
