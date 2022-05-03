@@ -65,7 +65,7 @@ def train(num_iterations, agent, env, evaluate, validate_steps, output, max_epis
         
         # evaluate
         if evaluate is not None and validate_steps > 0 and step % validate_steps == 0: 
-            policy = lambda x: agent.select_action(x, decay_epsilon=False)
+            policy = lambda x: agent.select_action(x)
             validate_reward = evaluate(env, policy, debug=True, visualize=True)
             if debug: prYellow('[Evaluate] Step_{:07d}: mean_reward:{}'.format(step, validate_reward))
         
@@ -97,7 +97,7 @@ def test(num_episodes, agent, env, evaluate, model_path, visualize=True, debug=F
     agent.load_weights(model_path)
     agent.is_training = False
     agent.eval()
-    policy = lambda x: agent.select_action(x, decay_epsilon=False)
+    policy = lambda x: agent.select_action(x)
 
     for i in range(num_episodes):
         validate_reward = evaluate(env, policy, debug=debug, visualize=visualize, save=False)

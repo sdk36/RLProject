@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as T
 
+from memory import ReplayMemory, Transition
 from PIL import Image
 from cpprb import ReplayBuffer, PrioritizedReplayBuffer
 
@@ -51,7 +52,7 @@ class DQN(object):
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
 
         #replay memory
-        self.memory = ReplayBuffer(args.rmsize, env_dict)
+        self.memory = ReplayMemory(args.rmsize)
 
         #
         self.s_t = None # most resent state
@@ -64,7 +65,7 @@ class DQN(object):
         
         transitions = self.memory.sample(self.batch_size)
 
-        batch = ReplayBuffer(*zip(*transitions))
+        batch = Transition(*zip(*transitions))
 
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                               batch.next_state)),
@@ -105,12 +106,10 @@ class DQN(object):
 
     def observe(self, r_t, s_t1, done):
         if self.is_training:
-            print(self.s_t)
-            self.memory.add(obs=self.s_t,
-                            act=self.a_t,
-                            rew=r_t,
-                            next_obs=s_t1,
-                            done=done)
+            self.memory.push(self.s_t,
+                            self.a_t,
+                            s_t1,
+                            r_t)
 
     def random_action(self):
         action = self.act_sp.sample()
@@ -123,7 +122,7 @@ class DQN(object):
         self.steps_done += 1
         if sample > eps_threshold:
             with torch.no_grad():
-                action = self.policy_net(state).max(1)[1].view(1,1)
+                action = self.policy_net(to_tensor(np.array([state]))).max(1)[1].view(1,1)
                 self.a_t = action 
                 return action
         else: 
